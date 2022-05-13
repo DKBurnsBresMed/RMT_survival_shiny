@@ -54,9 +54,39 @@ ui <- navbarPage(
     uiOutput("ui_t_e_selector"),
     hr(),
     h2("Equation"),
-    
+    actionBttn(
+      inputId = "generate_formula",
+      label = "Generate equation for regression models",
+      icon = icon("cogs"),
+      style = "unite",
+      color = "success",
+      size = "lg",
+      block = TRUE
+    ),
+    verbatimTextOutput("print_surv_formula"),
     hr(),
     h2("QC prints"),
-    
+    fluidRow(
+      width = 12,
+      column(2,h2("Time:")),column(10,verbatimTextOutput("print_time"))
+    ),
+    fluidRow(
+      width = 12,
+      column(2,h2("Event")),column(10,verbatimTextOutput("print_event"))
+    ),
+    fluidRow(
+      width = 12,
+      column(2,h2("Continuous")),column(10,verbatimTextOutput("print_covariates"))
+    ),
+    fluidRow(
+      width = 12,
+      column(2,h2("Factor")),column(10,verbatimTextOutput("print_factors"))
+    )
+  ),
+  tabPanel(
+    title = "Perform regression",
+    value = "reg",
+    icon = icon("cogs"),
+    "XXX"
   )
 )

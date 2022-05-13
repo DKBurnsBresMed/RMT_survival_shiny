@@ -23,10 +23,10 @@ server <- function(input, output) {
     path_to_file <- input$csv_file_location$datapath
     top_row_labs <- input$csv_top_row_labs
     
-    fread(
+    as.data.frame(fread(
       file = path_to_file,
       header = top_row_labs
-    )
+    ))
   })
   output$ui_raw_csv_location <- renderPrint({print(input$csv_file_location$name)})
   output$ui_raw_csv_output <- renderDataTable({
@@ -114,7 +114,21 @@ server <- function(input, output) {
           12,
           pickerInput(
             inputId = "covariates",
-            label = "Covariates",
+            label = "Continuous covariates",
+            choices = raw_data_cols()[which(!raw_data_cols() %in% c(sel_time, sel_event))],
+            selected = NULL,
+            multiple = TRUE,
+            width = "100%"
+          )
+        )
+      ),
+      fluidRow(
+        width = 12,
+        column(
+          12,
+          pickerInput(
+            inputId = "factors",
+            label = "Factor variables",
             choices = raw_data_cols()[which(!raw_data_cols() %in% c(sel_time, sel_event))],
             selected = NULL,
             multiple = TRUE,
@@ -131,6 +145,33 @@ server <- function(input, output) {
   output$print_time       <- renderPrint({print(input$time)})
   output$print_event      <- renderPrint({print(input$event)})
   output$print_covariates <- renderPrint({print(input$covariates)})
+  output$print_factors    <- renderPrint({print(input$factors)})
+  
+  
+  # Survival regression formula:
+  
+  surv_formula <- eventReactive(input$generate_formula, {
+    
+    req(!is.null(input$time))
+    req(!is.null(input$event))
+    
+    return(
+      SurvregFormulaGen(
+        t           = raw_data()[,input$time],
+        e           = raw_data()[,input$event],
+        covs        = raw_data()[,input$covariates],
+        factors     = raw_data()[,input$factors],
+        nam_t       = input$time,
+        nam_e       = input$event,
+        nam_covs    = input$covariates,
+        nam_factors = input$factors,
+        DEBUG       = TRUE
+      )
+    )
+    
+  })
+  
+  output$print_surv_formula <- renderPrint({print(surv_formula())})
   
   
   

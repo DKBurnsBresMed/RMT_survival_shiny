@@ -6,11 +6,15 @@
 library(shiny)
 library(shinyWidgets)
 library(bslib)
+library(survival)
+library(flexsurv)
 library(survminer)
 library(tidyverse)
 library(data.table)
 library(DT)
 
+
+source("./functions/f_master.R")
 
 
 # Default values ----------------------------------------------------------
