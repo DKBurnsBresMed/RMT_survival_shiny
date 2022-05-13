@@ -175,6 +175,25 @@ server <- function(input, output) {
   
   
   
+  # Run regression analysis
+  
+  flexsurv_regressions <- eventReactive(input$run_regressions,{
+    
+    # run regression analysis
+    dists     <- c("exponential","weibull","llogis",      "lnorm",     "gompertz","gengamma")
+    DistNames <- c("exponential","weibull","log_logistic","log_normal","gompertz","gen_gamma")
+    names(dists) <- dists
+    names(DistNames) <- DistNames
+    
+    return(
+      lapply(dists, function(model){
+        flexsurvreg(surv_formula(), data = raw_data(), dist = dists[model])
+      })
+    )
+  })
+  
+  output$print_flexsurv_regressions <- renderPrint({print(flexsurv_regressions())})
+  
   
   
 }

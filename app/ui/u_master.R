@@ -87,6 +87,15 @@ ui <- navbarPage(
     title = "Perform regression",
     value = "reg",
     icon = icon("cogs"),
-    "XXX"
+    actionBttn(
+      inputId = "run_regressions",
+      label = "Run regression analysis",
+      icon = icon("cogs"),
+      style = "unite",
+      color = "success",
+      size = "lg",
+      block = TRUE
+    ),
+    verbatimTextOutput("print_flexsurv_regressions")
   )
 )
