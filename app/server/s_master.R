@@ -150,28 +150,70 @@ server <- function(input, output) {
   
   # Survival regression formula:
   
-  surv_formula <- eventReactive(input$generate_formula, {
+  surv_fit <- eventReactive(input$generate_formula, {
     
     req(!is.null(input$time))
     req(!is.null(input$event))
     
-    return(
-      SurvregFormulaGen(
-        t           = raw_data()[,input$time],
-        e           = raw_data()[,input$event],
-        covs        = raw_data()[,input$covariates],
-        factors     = raw_data()[,input$factors],
-        nam_t       = input$time,
-        nam_e       = input$event,
-        nam_covs    = input$covariates,
-        nam_factors = input$factors,
-        DEBUG       = TRUE
-      )
+    out_list <- list()
+    
+    out_list$df <- raw_data()
+    
+    out_list$txt <- list(
+      time  = input$time,
+      event = input$event,
+      cov   = input$covariates,
+      fac   = input$factors
     )
     
+    out_list$form <- SurvregFormulaGen(
+      t           = out_list$df[,out_list$txt$time],
+      e           = out_list$df[,out_list$txt$event],
+      covs        = out_list$df[,out_list$txt$cov],
+      factors     = out_list$df[,out_list$txt$fac],
+      nam_t       = out_list$txt$time,
+      nam_e       = out_list$txt$event,
+      nam_covs    = out_list$txt$cov,
+      nam_factors = out_list$txt$fac,
+      DEBUG       = TRUE
+    )
+    out_list$survfit <- survfit(form)
+    
+    # dataframe for survminer:
+    
+    out_list$sm_df <- Func_MakeDatSurvFriendly(
+      Data_required = out_list$df,
+      time_column = out_list$txt$time,
+      event_column = out_list$txt$event,
+      t_multiplier = 1
+    )
+    
+    out_list$est <- Func_GetSurvEst(Data_required = out_list$sm_df)
+    out_list$plot <- Func_MakeKMPlotForUI(
+      SurvEstimate  = out_list$est,
+      Data_required = out_list$sm_df,
+      censor_ticks  = TRUE,
+      conf          = TRUE
+    )
+    
+    return(out_list)
+
   })
   
-  output$print_surv_formula <- renderPrint({print(surv_formula())})
+  output$print_surv_formula <- renderPrint({print(surv_fit()$form)})
+  
+  
+  # Basic plots of KM once formula is done:
+  
+  # observeEvent(surv_fit(),{
+  #   saveRDS(surv_fit(),"../debug/surv_fit.rds")
+  # })
+  
+  
+  output$ui_basic_km_plot <- renderPlot({
+    req(!is.null(surv_fit()))
+    surv_fit()$plot
+  })
   
   
   
@@ -187,12 +229,34 @@ server <- function(input, output) {
     
     return(
       lapply(dists, function(model){
-        flexsurvreg(surv_formula(), data = raw_data(), dist = dists[model])
+        flexsurvreg(surv_fit()$form, data = surv_fit()$data, dist = dists[model])
       })
     )
   })
   
   output$print_flexsurv_regressions <- renderPrint({print(flexsurv_regressions())})
+  output$print_flexsurv_regressions_coef <-
+    renderPrint({
+      print(lapply(flexsurv_regressions(), coefficients))
+    })
+  output$print_flexsurv_regressions_fit <-
+    renderPrint({
+      DistNames <- c("Exponential","Weibull","Log-logistic","Log-normal","Gompertz","Generalised gamma")
+      fit_table <- do.call(rbind, lapply(flexsurv_regressions(), function(model) {
+        a <- round(AIC(model),2)
+        b <- round(BIC(model),2)
+        c("AIC" = a, "BIC" = b)
+      }))
+      rn <- rownames(fit_table)
+      rownames(fit_table) <- DistNames
+      fit_table <- rownames_to_column(as.data.frame(fit_table),var = "distribution")
+      rownames(fit_table) <- rn
+      print(fit_table)
+    })
+  output$print_flexsurv_regressions_vcov <-
+    renderPrint({
+      print(lapply(flexsurv_regressions(), vcov))
+    })
   
   
   

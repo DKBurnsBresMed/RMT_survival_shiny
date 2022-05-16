@@ -65,6 +65,9 @@ ui <- navbarPage(
     ),
     verbatimTextOutput("print_surv_formula"),
     hr(),
+    h2("Basic output"),
+    plotOutput("ui_basic_km_plot"),
+    hr(),
     h2("QC prints"),
     fluidRow(
       width = 12,
@@ -96,6 +99,18 @@ ui <- navbarPage(
       size = "lg",
       block = TRUE
     ),
-    verbatimTextOutput("print_flexsurv_regressions")
+    fluidRow(
+      width = 12,
+      column(6,verbatimTextOutput("print_flexsurv_regressions")),
+      column(
+        6,
+        h2("Coefficients"),
+        verbatimTextOutput("print_flexsurv_regressions_coef"),
+        h2("Fit statistics"),
+        verbatimTextOutput("print_flexsurv_regressions_fit"),
+        h2("Variance-covariance"),
+        verbatimTextOutput("print_flexsurv_regressions_vcov")
+      )
+    )
   )
 )
