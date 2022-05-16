@@ -358,7 +358,75 @@ Func_KM_ProcPlot <- function(PlotDatList, Cens, conf) {
 
 
 
+# get curve fits: generate a list of survival extrapolations
+#   Uses map to take the summary of the model. Expects a list of models (i.e. models$exponential etc)
+#   For each model it puts it in a tibble, then applies summary(, type = "survival") etc to produce
+#   a tibble output which can then go into a graphing function (i.e. psm_plot()) to generate ggplots
+get_curvefits <- function(models, time) {
+  
+  # 1. make a list of extrapolations. 2. bind the list together as efficiently as possible
+  ExtrapList <- lapply(1:length(models), function(ThisModel){
+    data.frame(
+      time = time,
+      est  = summary(models[[ThisModel]], type = "survival", B = 0, t = time, ci = FALSE, tidy = T)$est,
+      Dist = names(models)[ThisModel]
+    )
+  })
+  
+  return(do.call(rbind, ExtrapList))
+}
 
 
 
+
+# plot curve fits
+
+# Takes the survival models and draws Kaplan Meier with a risk table under it.
+#   Then also takes the survival extrapolations derived using get_curvefits() and overlays them
+#   on top of the Kaplan Meier plot
+
+psm_plot <- function(SurvEstimate, Data_required, curvefits_data, xlim, break_by) {
+  
+  dists <- unique(curvefits_data$Dist)
+  cols  <- Config_graph_SurvlineColours[which(names(Config_graph_SurvlineColours) %in% dists)]
+  thick <- Config_graph_SurvLineThickness[which(names(Config_graph_SurvLineThickness) %in% dists)]
+  
+  plot <- ggsurvplot(
+    fit                   = SurvEstimate,
+    data                  = Data_required,
+    combine               = TRUE,
+    censor                = FALSE,
+    risk.table            = TRUE,
+    conf.int              = FALSE,
+    break.x.by            = break_by,
+    break.y.by            = 0.1,
+    xlim                  = c(0, xlim),
+    xlab                  = "Time",
+    size                  = 0.72,
+    legend.title          = '',
+    legend.labs           = c("KM"),
+    palette               = c(rgb(0, 0, 0, maxColorValue = 30)),
+    risk.table.y.text.col = FALSE
+  )
+  
+  plot$plot <- plot$plot +
+    geom_line(aes(
+      x = time,
+      y = est,
+      colour = Dist,
+      alpha = Dist,
+      size = Dist
+    ),
+    data = curvefits_data) +
+    scale_color_manual(values = c("KM" = "black",cols)) +
+    scale_size_manual(values = c("KM" = 1.5, thick)) +
+    guides(
+      color = guide_legend(title = NULL),
+      linetype = "none",
+      alpha = "none",
+      size = "none"
+    )
+  
+  suppressWarnings(suppressMessages(plot))
+}
 

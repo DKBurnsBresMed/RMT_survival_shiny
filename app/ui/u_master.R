@@ -47,11 +47,11 @@ ui <- navbarPage(
     dataTableOutput("ui_raw_csv_output")
   ),
   tabPanel(
-    title = "Select time and event",
+    title = "Time, event, and stratification",
     value = "t_and_e",
     icon = icon("hand-pointer"),
     h2("Select time, event, and covariates"),
-    uiOutput("ui_t_e_selector"),
+    uiOutput("ui_t_e_s_selector"),
     hr(),
     h2("Equation"),
     actionBttn(
@@ -66,7 +66,7 @@ ui <- navbarPage(
     verbatimTextOutput("print_surv_formula"),
     hr(),
     h2("Basic output"),
-    plotOutput("ui_basic_km_plot"),
+    uiOutput("ui_basic_km_plots"),
     hr(),
     h2("QC prints"),
     fluidRow(
@@ -101,7 +101,11 @@ ui <- navbarPage(
     ),
     fluidRow(
       width = 12,
-      column(6,verbatimTextOutput("print_flexsurv_regressions")),
+      column(
+        6,
+        h2("Raw output"),
+        verbatimTextOutput("print_flexsurv_regressions")
+      ),
       column(
         6,
         h2("Coefficients"),
