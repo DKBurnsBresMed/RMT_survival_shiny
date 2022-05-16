@@ -66,6 +66,23 @@ ui <- navbarPage(
     verbatimTextOutput("print_surv_formula"),
     hr(),
     h2("Basic output"),
+    numericInput(
+      inputId = "i_extrap_th",
+      label = "Time horizon for extrapolations",
+      value = 100,
+      min = 1,
+      step = 1,
+      width = "100%"
+    ),
+    sliderInput(
+      inputId = "i_n_breaks",
+      label = "Number of breaks in risk table",
+      value = 8,
+      min = 1,
+      max = 20,
+      step = 1,
+      width = "100%"
+    ),
     uiOutput("ui_basic_km_plots"),
     hr(),
     h2("QC prints"),

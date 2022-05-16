@@ -174,7 +174,6 @@ server <- function(input, output) {
     saveRDS(reactiveValuesToList(input),"../debug/input.rds")
   })
   
-  
   surv_fit <- eventReactive(input$generate_formula, {
     
     req(!is.null(input$time))
@@ -371,15 +370,15 @@ server <- function(input, output) {
       
       out_list$extraps <- get_curvefits(
         models = out_list$flexsurv,
-        time = seq(from = 0, to = 2000, by = 1)
+        time = seq(from = 0, to = isolate(input$i_extrap_th), by = 1)
       )
       
       out_list$extrap_plots <- psm_plot(
         SurvEstimate = out_list$est,
         Data_required = out_list$sm_df,
         curvefits_data = out_list$extraps,
-        xlim = 2000,
-        break_by = round(2000 / 8, 0)
+        xlim = isolate(input$i_extrap_th),
+        break_by = round(isolate(input$i_extrap_th) / input$i_n_breaks, 0)
       )
       
       return(out_list)
