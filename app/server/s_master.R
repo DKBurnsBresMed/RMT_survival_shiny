@@ -284,13 +284,6 @@ server <- function(input, output) {
     dat_labs <- names(dat_list)
     names(dat_labs) <- dat_labs
     
-    # labels for distributions for regression analysis
-    dists     <- c("exponential","weibull","llogis",      "lnorm",     "gompertz","gengamma")
-    DistNames <- c("Exponential","Weibull","Log-logistic","Log-normal","Gompertz","Generalised gamma")
-    names(dists) <- dists
-    names(DistNames) <- DistNames
-    
-    
     # Now that we have a full list of all the datasets we want, we can cycle
     # through each dataset performing the survival analysis. This then
     # provides us with all of the possible survival analysis we could want.
@@ -412,6 +405,23 @@ server <- function(input, output) {
       output[[paste0("ui_extrap_plot",strata)]] <- renderPlot({
         surv_fit()[[strata]]$extrap_plots
       })
+      output[[paste0("ui_aicbic",strata)]] <- renderDataTable({
+        datatable(
+          data = surv_fit()[[strata]]$fit_table,
+          options = Config_UI_Res_BDTabopts,
+          caption = paste0("Fit statistics for ", names(surv_fit())[strata])
+        )
+      })
+      lapply(dists,function(dist) {
+        output[[paste0("ui_vcov_",dist,strata)]] <- renderDataTable({
+          datatable(
+            data = surv_fit()[[strata]]$vcov[[dist]],
+            options = Config_UI_Res_BDTabopts,
+            caption = paste0("Variance covariance for ", names(surv_fit())[strata], ": ", dist)
+          )
+        })
+      })
+      
     })
   }, priority = 1000)
 
@@ -421,23 +431,70 @@ server <- function(input, output) {
     n_plots <- length(surv_fit())
     
     plot_list <- lapply(1:n_plots, function(this_plot) {
-      fluidRow(
-        width = 12,
-        column(12,h2(paste0("Strata: ",names(surv_fit())[this_plot]))),
-        column(
-          6,
-          plotOutput(paste0("ui_basic_km_plot",this_plot))
+      tabPanel(
+        title = names(surv_fit())[this_plot],
+        value = paste0("strata",this_plot),
+        icon = icon("eye"),
+        fluidRow(
+          width = 12,
+          column(
+            6,
+            plotOutput(paste0("ui_basic_km_plot",this_plot))
+          ),
+          column(
+            6,
+            plotOutput(paste0("ui_extrap_plot",this_plot))
+          )
         ),
-        column(
-          6,
-          plotOutput(paste0("ui_extrap_plot",this_plot))
+        fluidRow(
+          width = 12,
+          column(
+            6,
+            lapply(dists, function(dist) {
+              tagList(
+                br(),
+                dataTableOutput(paste0("ui_vcov_",dist,this_plot)),
+                hr()
+              )
+            })
+          ),
+          column(
+            6,
+            dataTableOutput(paste0("ui_aicbic",this_plot))
+          )
         )
       )
     })
     
     # put all of them together into a taglist:
-    tagList(plot_list)
+    
+    do.call(tabBox, c(
+      plot_list,
+      list(
+        id = "tab_plotoutput",
+        width = "100%",
+        selected = isolate(input$tab_plotoutput)
+      )
+    ))
+    
+    
   })
+  
+  
+  
+  
+  
+  
+  # observe({print(input$tab_survplot_output)})
+  
+  # tab_survplot <- reactive({
+  #   t <- isolate(input$tab_survplot_output)
+  #   if (is.null(t)) {
+  #     return("strata1")
+  #   } else {
+  #     return(t)
+  #   }
+  # })
   
   
   

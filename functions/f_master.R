@@ -414,7 +414,6 @@ psm_plot <- function(SurvEstimate, Data_required, curvefits_data, xlim, break_by
       x = time,
       y = est,
       colour = Dist,
-      alpha = Dist,
       size = Dist
     ),
     data = curvefits_data) +
@@ -423,7 +422,6 @@ psm_plot <- function(SurvEstimate, Data_required, curvefits_data, xlim, break_by
     guides(
       color = guide_legend(title = NULL),
       linetype = "none",
-      alpha = "none",
       size = "none"
     )
   

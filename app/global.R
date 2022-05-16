@@ -5,6 +5,7 @@
 
 library(shiny)
 library(shinyWidgets)
+library(shinydashboard)
 library(bslib)
 library(survival)
 library(flexsurv)
@@ -19,6 +20,12 @@ source("./functions/f_master.R")
 
 # Default values ----------------------------------------------------------
 
+
+# labels for distributions for regression analysis
+dists     <- c("exponential","weibull","llogis",      "lnorm",     "gompertz","gengamma")
+DistNames <- c("Exponential","Weibull","Log-logistic","Log-normal","Gompertz","Generalised gamma")
+names(dists) <- dists
+names(DistNames) <- DistNames
 
 
 # Table stuff -------------------------------------------------------------
@@ -54,14 +61,15 @@ Config_UI_Res_BDTabopts <- list(
 # Graphical stuff ---------------------------------------------------------
 
 Config_graph_SurvlineColours <- c(
-  "KM"           = alpha("black", 1),
-  "exp"          = alpha("#DB3B93", 0.8),
-  "weibull"      = alpha("#45B9D1", 0.8),
-  "lnorm"        = alpha("#002D5C", 0.8),
-  "llogis"       = alpha("#F9161C", 0.8),
-  "gompertz"     = alpha("#B97E22", 0.8),
-  "gengamma"     = alpha("#75AC3F", 0.8),
-  "gamma"        = alpha("#1AA393", 0.8))
+  "KM"           = "black",
+  "exp"          = "#DB3B93",
+  "weibull"      = "#45B9D1",
+  "lnorm"        = "#002D5C",
+  "llogis"       = "#F9161C",
+  "gompertz"     = "#B97E22",
+  "gengamma"     = "#75AC3F",
+  "gamma"        = "#1AA393"
+)
 
 Config_graph_SurvLineThickness <- c(
   "KM"           = 1.5,
